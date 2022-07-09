@@ -5,10 +5,19 @@ using UnityEngine.UI;
 
 public class NameScript : MonoBehaviour
 {
-    public string playerName;
+    public Text PlayerNameText;
 
-    public void SetName()
+    public string playerName;
+    public string bestScore;
+
+
+    private void Awake()
     {
-        
+        playerName = MenuManager.Instance.playerName;
+    }
+
+    private void Update()
+    {
+        PlayerNameText.text = playerName;
     }
 }

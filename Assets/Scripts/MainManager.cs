@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.IO;
 
 public class MainManager : MonoBehaviour
 {
@@ -11,15 +12,30 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text BestScoreText;
+    public GameObject BestScoreParent;
     public GameObject GameOverText;
     
     private bool m_Started = false;
     private int m_Points;
+    private int bestScorePoints;
+    private string currentPlayerSave;
     
     private bool m_GameOver = false;
 
-    
-    // Start is called before the first frame update
+
+
+    private void Awake()
+    {
+        LoadPoints(); 
+    }
+
+    private void OnApplicationQuit()
+    {
+        SavePoints();
+    }
+
+
     void Start()
     {
         const float step = 0.6f;
@@ -72,5 +88,56 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        BestScoreParent.SetActive(true);
+
+        if (bestScorePoints == 0)
+        {
+            BestScoreText.text = MenuManager.Instance.playerName + "has the best score of: " + m_Points; 
+        } else if (bestScorePoints < m_Points)
+        {
+            BestScoreText.text = MenuManager.Instance.playerName + "has the best score of: " + m_Points;
+        }else
+        BestScoreText.text = currentPlayerSave + " has the best score: " + bestScorePoints; 
+    }
+
+    [System.Serializable]
+
+    public class SaveScore
+    {
+        public static SaveScore Instance;
+
+        public int M_Points;
+        public string currentPlayer;
+    }
+
+    public void SavePoints()
+    {
+        
+        SaveScore data = new SaveScore();
+
+        if (m_Points > data.M_Points)
+        {
+            data.M_Points = m_Points;
+            data.currentPlayer = MenuManager.Instance.playerName;
+
+            string json = JsonUtility.ToJson(data);
+
+            File.WriteAllText(Application.persistentDataPath + "/savepointsfile.json", json);
+        }
+    }
+
+    public void LoadPoints()
+    {
+        string path = Application.persistentDataPath + "/savepointsfile.json";
+
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            SaveScore data = JsonUtility.FromJson<SaveScore>(json);
+
+            bestScorePoints = data.M_Points;
+            currentPlayerSave = data.currentPlayer;
+            Debug.Log(bestScorePoints);
+        }
     }
 }
